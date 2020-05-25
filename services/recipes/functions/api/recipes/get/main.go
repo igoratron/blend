@@ -8,7 +8,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/igoratron/blend/store"
+	"github.com/igoratron/blend/pkgs/store"
 )
 
 type httpResponse events.APIGatewayProxyResponse

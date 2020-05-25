@@ -1,9 +1,9 @@
 .PHONY: build clean deploy
 
 build:
-	cd github.com/igoratron/blend/; env GOOS=linux go build -ldflags="-s -w" -o ../../../bin/process-recipes recipeAdder/main.go
-	cd github.com/igoratron/blend/; env GOOS=linux go build -ldflags="-s -w" -o ../../../bin/get-ingredients getIngredients/main.go
-	cd github.com/igoratron/blend/; env GOOS=linux go build -ldflags="-s -w" -o ../../../bin/get-recipes getRecipes/main.go
+	env GOOS=linux go build -ldflags="-s -w" -o bin/process-recipes functions/dynamodb/recipeAdder/main.go
+	env GOOS=linux go build -ldflags="-s -w" -o bin/get-ingredients functions/api/ingredients/get/main.go
+	env GOOS=linux go build -ldflags="-s -w" -o bin/get-recipes functions/api/recipes/get/main.go
 
 clean:
 	rm -rf ./bin
