@@ -44,3 +44,8 @@ type DuplicateEntryError struct {
 func (err DuplicateEntryError) Error() string {
   return err.message
 }
+
+type Recipe struct {
+  Name string `json:"name"`
+  Url string `json:"url"`
+}

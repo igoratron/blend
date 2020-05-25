@@ -33,7 +33,7 @@ func getDBCredentials() (MySQLCredentials, error) {
 	return credentials, nil
 }
 
-func makePlaceholderString(columns int, statements int) string {
+func MakePlaceholderString(columns int, statements int) string {
 	result := make([]string, statements)
 
 	for i := 0; i < statements; i += 1 {
@@ -70,7 +70,7 @@ func connect() *sql.DB {
 }
 
 func insertInto(db Queryable, table string, columns *[]string, records *[]Record) error {
-	placeholderString := makePlaceholderString(len(*columns), len(*records))
+	placeholderString := MakePlaceholderString(len(*columns), len(*records))
 	columnNames := strings.Join(*columns, ", ")
 
 	sqlStatement := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES %s", table, columnNames, placeholderString)

@@ -91,26 +91,3 @@ func SearchIngredients(ingredientName *string) ([]Ingredient, error) {
 
   return ingredients, nil
 }
-
-func GetRecommendedRecipes() (*[]string, error) {
-	sqlStatement := `
-    SELECT recipe_id, count(*) c
-    FROM pantry p JOIN ingredients_recipes ir
-    ON p.ingredient_id = ir.ingredient_id
-    GROUP BY recipe_id
-    ORDER BY c DESC
-    LIMIT 3
-  `
-  recipeIds := make([]string, 3)
-  rows, err := db.Query(sqlStatement)
-  if err != nil {
-    return &recipeIds, err
-  }
-
-  for i := 0; rows.Next(); i += 1 {
-    var count int
-    rows.Scan(&recipeIds[i], &count)
-  }
-
-  return &recipeIds, nil
-}

@@ -52,9 +52,24 @@ function IngredientSearch({ pantry, addToPantry, removeFromPantry }) {
 }
 
 function App() {
+  const [recipes, setRecipes] = useState([]);
   const [pantry, setPantry] = useState([]);
+  const searchRecipes = useCallback(
+    pantry => {
+      const ingredientIds = pantry.map(i => i.id).join(",");
+      const apiUrl =
+        "https://mfuqctb1me.execute-api.eu-west-1.amazonaws.com/dev/recipes";
+      return fetch(`${apiUrl}?ingredientIds=${ingredientIds}`)
+        .then(response => response.json())
+        .then(setRecipes)
+        .catch(() => setRecipes([]));
+    },
+    [pantry]
+  );
   const addToPantry = ingredient => {
-    setPantry(pantry.concat(ingredient));
+    const newPantry = pantry.concat(ingredient);
+    setPantry(newPantry);
+    searchRecipes(newPantry);
   };
   const removeFromPantry = ingredient => {
     setPantry(pantry.filter(i => ingredient.id !== i.id));
@@ -78,7 +93,11 @@ function App() {
       <div className="two-panes_right">
         <h2 className="title">Available recipes</h2>
         <ul className="list">
-          <li>Onion</li>
+          {recipes.map(recipe => (
+            <li>
+              <a href={recipe.url}>{recipe.name}</a>
+            </li>
+          ))}
         </ul>
       </div>
     </div>
