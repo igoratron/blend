@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
-  "fmt"
+	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 
-  "github.com/igoratron/blend/pkgs/store"
+	"github.com/igoratron/blend/pkgs/store"
 )
 
 type Event events.DynamoDBEvent
@@ -25,14 +25,14 @@ func Handler(ctx context.Context, e Event) {
 
 		fmt.Printf("Adding recipe %s. Found %d ingredients\n", recipeId, len(*recipeIngredients))
 
-    err := store.AddIngredients(&recipeId, recipeIngredients)
+		err := store.AddIngredients(&recipeId, recipeIngredients)
 
-    if err != nil {
-      fmt.Println(err)
-      continue
-    }
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
 
-    fmt.Println("Recipe added")
+		fmt.Println("Recipe added")
 	}
 }
 

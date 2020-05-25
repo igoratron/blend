@@ -45,7 +45,7 @@ func MakePlaceholderString(columns int, statements int) string {
 }
 
 func columns(names ...string) *[]string {
-  return &names
+	return &names
 }
 
 func connect() *sql.DB {
@@ -84,9 +84,9 @@ func insertInto(db Queryable, table string, columns *[]string, records *[]Record
 	_, err := db.Exec(sqlStatement, allRecordValues...)
 
 	if err != nil {
-    if strings.Contains(err.Error(), "Error 1062") {
-      return DuplicateEntryError{ message: err.Error() }
-    }
+		if strings.Contains(err.Error(), "Error 1062") {
+			return DuplicateEntryError{message: err.Error()}
+		}
 
 		return err
 	}
@@ -95,16 +95,16 @@ func insertInto(db Queryable, table string, columns *[]string, records *[]Record
 }
 
 func selectFrom(db Queryable, columns *[]string, table string, where ...interface{}) *sql.Row {
-  var whereValues []interface{}
+	var whereValues []interface{}
 
-  sqlStatement := fmt.Sprintf("SELECT %s FROM %s", strings.Join(*columns, ", "), table)
+	sqlStatement := fmt.Sprintf("SELECT %s FROM %s", strings.Join(*columns, ", "), table)
 
-  if len(where) > 1 {
-    whereClause := where[0].(string)
-    whereValues = where[1:]
-    sqlStatement = strings.Join([]string{sqlStatement, "WHERE", whereClause}, " ")
-  }
+	if len(where) > 1 {
+		whereClause := where[0].(string)
+		whereValues = where[1:]
+		sqlStatement = strings.Join([]string{sqlStatement, "WHERE", whereClause}, " ")
+	}
 
 	fmt.Printf("Query: %s with %#v\n", sqlStatement, whereValues)
-  return db.QueryRow(sqlStatement, whereValues...)
+	return db.QueryRow(sqlStatement, whereValues...)
 }

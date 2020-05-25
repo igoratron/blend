@@ -10,8 +10,8 @@ type MySQLCredentials struct {
 }
 
 type Ingredient struct {
-  Id   string `json:"id"`
-  Name string `json:"name"`
+	Id   string `json:"id"`
+	Name string `json:"name"`
 }
 
 func (i Ingredient) Values() []interface{} {
@@ -24,7 +24,7 @@ type Record interface {
 
 type IngredientRecipe struct {
 	IngredientId string
-	RecipeId    string
+	RecipeId     string
 }
 
 func (i IngredientRecipe) Values() []interface{} {
@@ -32,20 +32,20 @@ func (i IngredientRecipe) Values() []interface{} {
 }
 
 type Queryable interface {
-  Exec(query string, args ...interface{}) (sql.Result, error)
-  Query(query string, args ...interface{}) (*sql.Rows, error)
-  QueryRow(query string, args ...interface{}) *sql.Row
+	Exec(query string, args ...interface{}) (sql.Result, error)
+	Query(query string, args ...interface{}) (*sql.Rows, error)
+	QueryRow(query string, args ...interface{}) *sql.Row
 }
 
 type DuplicateEntryError struct {
-  message string
+	message string
 }
 
 func (err DuplicateEntryError) Error() string {
-  return err.message
+	return err.message
 }
 
 type Recipe struct {
-  Name string `json:"name"`
-  Url string `json:"url"`
+	Name string `json:"name"`
+	Url  string `json:"url"`
 }
