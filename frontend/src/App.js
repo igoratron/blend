@@ -95,7 +95,7 @@ function App() {
         <ul className="list">
           {recipes.map(recipe => (
             <li>
-              <a href={recipe.url}>{recipe.name}</a>
+              <a href={recipe.url} target="_blank" rel="noopener noreferrer">{recipe.name}</a>
             </li>
           ))}
         </ul>
