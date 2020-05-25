@@ -68,6 +68,30 @@ func GetIngredient(name string) (Ingredient, error) {
   return ingredient, nil
 }
 
+func SearchIngredients(ingredientName *string) ([]Ingredient, error) {
+  var ingredients []Ingredient
+  fmt.Printf("Searching for %s\n", *ingredientName)
+  wildcard := *ingredientName + "*"
+  results, err := db.Query(`SELECT id, name FROM ingredients WHERE MATCH(name) AGAINST (? IN BOOLEAN MODE)`, wildcard)
+
+  if err != nil {
+    return ingredients, err
+  }
+
+  for results.Next() {
+    var ingredient Ingredient
+    err = results.Scan(&ingredient.Id, &ingredient.Name)
+
+    if err != nil {
+      return ingredients, err
+    }
+
+    ingredients = append(ingredients, ingredient)
+  }
+
+  return ingredients, nil
+}
+
 func GetRecommendedRecipes() (*[]string, error) {
 	sqlStatement := `
     SELECT recipe_id, count(*) c

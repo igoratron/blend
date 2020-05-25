@@ -52,12 +52,20 @@ package:
 
 functions:
   recipeAdder:
-    handler: bin/recipeAdder
+    handler: bin/process-recipes
     events:
       - stream: arn:aws:dynamodb:eu-west-1:071232847815:table/hellofresh-recipes/stream/2020-05-23T12:57:29.254
   shoppingListCreator:
-    handler: bin/shoppingListCreator
+    handler: bin/get-shopping-list
     events:
       - http:
           path: shopping-list
           method: get
+          cors: true
+  ingredients:
+    handler: bin/get-ingredients
+    events:
+      - http:
+          path: ingredients
+          method: get
+          cors: true
