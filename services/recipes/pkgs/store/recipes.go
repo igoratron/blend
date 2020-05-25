@@ -8,18 +8,18 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
-func toInterfaceArray(array *[]string) *[]interface{} {
-	result := make([]interface{}, len(*array))
+func toInterfaceArray(array []string) []interface{} {
+	result := make([]interface{}, len(array))
 
-	for i, e := range *array {
-		result[i] = &e
+	for i, e := range array {
+		result[i] = e
 	}
 
-	return &result
+	return result
 }
 
-func GetRecipes(ingredientIds *[]string) ([]Recipe, error) {
-	placeholderString := MakePlaceholderString(len(*ingredientIds), 1)
+func GetRecipes(ingredientIds []string) ([]Recipe, error) {
+	placeholderString := makePlaceholderString(len(ingredientIds), 1)
 	sqlStatement := fmt.Sprintf(`
     SELECT recipe_id, count(*) c
     FROM ingredients_recipes
@@ -32,7 +32,7 @@ func GetRecipes(ingredientIds *[]string) ([]Recipe, error) {
 	fmt.Println("Querying:", sqlStatement, ingredientIds)
 
 	var recipes []Recipe
-	rows, err := db.Query(sqlStatement, *toInterfaceArray(ingredientIds)...)
+	rows, err := db.Query(sqlStatement, toInterfaceArray(ingredientIds)...)
 	if err != nil {
 		return recipes, err
 	}
@@ -45,14 +45,16 @@ func GetRecipes(ingredientIds *[]string) ([]Recipe, error) {
 		recipeIds = append(recipeIds, recipeId)
 	}
 
-	return getRecipesFromDDB(&recipeIds)
+	fmt.Printf("Found %d recipies in DB:\n%#v\n", len(recipeIds), recipeIds)
+
+	return getRecipesFromDDB(recipeIds)
 }
 
-func getRecipesFromDDB(recipeIds *[]string) ([]Recipe, error) {
+func getRecipesFromDDB(recipeIds []string) ([]Recipe, error) {
 	svc := dynamodb.New(session.New())
 
-	keys := make([]map[string]*dynamodb.AttributeValue, len(*recipeIds))
-	for i, recipeId := range *recipeIds {
+	keys := make([]map[string]*dynamodb.AttributeValue, len(recipeIds))
+	for i, recipeId := range recipeIds {
 		keys[i] = map[string]*dynamodb.AttributeValue{
 			"id": {
 				S: aws.String(recipeId),

@@ -33,7 +33,7 @@ func getDBCredentials() (MySQLCredentials, error) {
 	return credentials, nil
 }
 
-func MakePlaceholderString(columns int, statements int) string {
+func makePlaceholderString(columns int, statements int) string {
 	result := make([]string, statements)
 
 	for i := 0; i < statements; i += 1 {
@@ -42,10 +42,6 @@ func MakePlaceholderString(columns int, statements int) string {
 	}
 
 	return strings.Join(result, ", ")
-}
-
-func columns(names ...string) *[]string {
-	return &names
 }
 
 func connect() *sql.DB {
@@ -69,14 +65,14 @@ func connect() *sql.DB {
 	return db
 }
 
-func insertInto(db Queryable, table string, columns *[]string, records *[]Record) error {
-	placeholderString := MakePlaceholderString(len(*columns), len(*records))
-	columnNames := strings.Join(*columns, ", ")
+func insertInto(db Queryable, table string, columns []string, records []Record) error {
+	placeholderString := makePlaceholderString(len(columns), len(records))
+	columnNames := strings.Join(columns, ", ")
 
 	sqlStatement := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES %s", table, columnNames, placeholderString)
 
 	var allRecordValues []interface{}
-	for _, record := range *records {
+	for _, record := range records {
 		allRecordValues = append(allRecordValues, record.Values()...)
 	}
 
@@ -84,27 +80,8 @@ func insertInto(db Queryable, table string, columns *[]string, records *[]Record
 	_, err := db.Exec(sqlStatement, allRecordValues...)
 
 	if err != nil {
-		if strings.Contains(err.Error(), "Error 1062") {
-			return DuplicateEntryError{message: err.Error()}
-		}
-
 		return err
 	}
 
 	return nil
-}
-
-func selectFrom(db Queryable, columns *[]string, table string, where ...interface{}) *sql.Row {
-	var whereValues []interface{}
-
-	sqlStatement := fmt.Sprintf("SELECT %s FROM %s", strings.Join(*columns, ", "), table)
-
-	if len(where) > 1 {
-		whereClause := where[0].(string)
-		whereValues = where[1:]
-		sqlStatement = strings.Join([]string{sqlStatement, "WHERE", whereClause}, " ")
-	}
-
-	fmt.Printf("Query: %s with %#v\n", sqlStatement, whereValues)
-	return db.QueryRow(sqlStatement, whereValues...)
 }

@@ -15,7 +15,7 @@ type Event events.DynamoDBEvent
 func Handler(ctx context.Context, e Event) {
 	for _, record := range e.Records {
 		if record.EventName != "INSERT" {
-			fmt.Printf("Event type is %s, skipping...", record.EventName)
+			fmt.Printf("Event type is %s, skipping...\n", record.EventName)
 			return
 		}
 
@@ -23,9 +23,9 @@ func Handler(ctx context.Context, e Event) {
 		recipeId := newRecipe["id"].String()
 		recipeIngredients := extractIngredientNames(newRecipe["ingredients"].List())
 
-		fmt.Printf("Adding recipe %s. Found %d ingredients\n", recipeId, len(*recipeIngredients))
+		fmt.Printf("Adding recipe %s. Found %d ingredients\n", recipeId, len(recipeIngredients))
 
-		err := store.AddIngredients(&recipeId, recipeIngredients)
+		err := store.AddIngredients(recipeId, recipeIngredients)
 
 		if err != nil {
 			fmt.Println(err)
@@ -36,14 +36,14 @@ func Handler(ctx context.Context, e Event) {
 	}
 }
 
-func extractIngredientNames(ingredients []events.DynamoDBAttributeValue) *[]string {
+func extractIngredientNames(ingredients []events.DynamoDBAttributeValue) []string {
 	result := make([]string, len(ingredients))
 
 	for index, ingredient := range ingredients {
 		result[index] = ingredient.Map()["name"].String()
 	}
 
-	return &result
+	return result
 }
 
 func main() {

@@ -2,43 +2,23 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
-	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/igoratron/blend/pkgs/store"
+	u "github.com/igoratron/blend/pkgs/util"
 )
 
-type httpResponse events.APIGatewayProxyResponse
-type httpRequest events.APIGatewayProxyRequest
-
-func GetIngredients(ctx context.Context, event httpRequest) (httpResponse, error) {
+func GetIngredients(ctx context.Context, event u.LambdaRequest) (u.LambdaResponse, error) {
 	ingredientName := event.QueryStringParameters["q"]
-	ingredients, err := store.SearchIngredients(&ingredientName)
-
-	if ingredients == nil {
-		ingredients = []store.Ingredient{}
-	}
+	ingredients, err := store.SearchIngredients(ingredientName)
 
 	if err != nil {
 		fmt.Println(err)
-		return makeRespose(500, err), nil
+		return u.MakeRespose(500, err), nil
 	}
 
-	return makeRespose(200, ingredients), nil
-}
-
-func makeRespose(statusCode int, body interface{}) httpResponse {
-	json, _ := json.Marshal(body)
-
-	return httpResponse{
-		StatusCode: 200,
-		Body:       string(json),
-		Headers: map[string]string{
-			"Access-Control-Allow-Origin": "*",
-		},
-	}
+	return u.MakeRespose(200, ingredients), nil
 }
 
 func main() {
