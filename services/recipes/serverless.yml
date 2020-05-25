@@ -1,0 +1,63 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: recipes
+# app and org for use with dashboard.serverless.com
+#app: your-app-name
+#org: your-org-name
+
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+# frameworkVersion: "=X.X.X"
+frameworkVersion: '>=1.28.0 <2.0.0'
+
+provider:
+  name: aws
+  runtime: go1.x
+  region: eu-west-1
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "secretsmanager:GetSecretValue"
+      Resource: "arn:aws:secretsmanager:eu-west-1:071232847815:secret:blend/db/dev-hHiI8U"
+    - Effect: "Allow"
+      Action:
+        - "dynamodb:BatchGetItem"
+      Resource: "arn:aws:dynamodb:eu-west-1:071232847815:table/hellofresh-recipes"
+
+  vpc:
+      securityGroupIds:
+        - sg-096f5b27af31d2764
+      subnetIds:
+        - subnet-08fd996d60ae1bb0c
+        - subnet-0a5f00bc69362bfbc
+        - subnet-0ea34eb4ee7f3a62e
+
+package:
+  exclude:
+    - ./**
+  include:
+    - ./bin/**
+
+functions:
+  recipeAdder:
+    handler: bin/recipeAdder
+    events:
+      - stream: arn:aws:dynamodb:eu-west-1:071232847815:table/hellofresh-recipes/stream/2020-05-23T12:57:29.254
+  shoppingListCreator:
+    handler: bin/shoppingListCreator
+    events:
+      - http:
+          path: shopping-list
+          method: get
