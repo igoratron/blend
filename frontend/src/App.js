@@ -1,8 +1,9 @@
-import React, { useReducer, useEffect } from "react";
+import React, { useReducer, useEffect, useState } from "react";
 import "./App.css";
 
 import * as actions from "./actions";
 import IngredientSearch from "./ingredienSearch";
+import Loading from "./Loading";
 
 export const StateContext = React.createContext();
 
@@ -45,8 +46,26 @@ const reducer = (state, action) => {
   }
 };
 
+function ping() {
+  return fetch(
+    "https://mfuqctb1me.execute-api.eu-west-1.amazonaws.com/dev/ingredients?q="
+  )
+    .then(r => r.ok)
+    .catch(() => false);
+}
+
+async function checkDBIsUp() {
+  const isDBUp = await ping();
+  if (!isDBUp) {
+    await checkDBIsUp();
+  }
+
+  return Promise.resolve();
+}
+
 function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [isDBUp, setDBUp] = useState(false);
 
   const { pantry, recipes, ingredientIdQuery } = state;
 
@@ -61,6 +80,16 @@ function App() {
       .then(recipes => dispatch(actions.recipesFetched(recipes)))
       .catch(() => dispatch(actions.recipesFetched([])));
   }, [ingredientIdQuery]);
+
+  useEffect(() => {
+    checkDBIsUp()
+      .then(() => setDBUp(true))
+      .catch(() => setDBUp(false));
+  }, []);
+
+  if (!isDBUp) {
+    return <Loading />;
+  }
 
   return (
     <StateContext.Provider value={{ state, dispatch }}>
