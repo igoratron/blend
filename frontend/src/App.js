@@ -2,7 +2,7 @@ import React, { useReducer, useEffect, useState } from "react";
 import "./App.css";
 
 import * as actions from "./actions";
-import IngredientSearch from "./ingredienSearch";
+import IngredientSearch from "./ingredientSearch";
 import Loading from "./Loading";
 
 export const StateContext = React.createContext();
