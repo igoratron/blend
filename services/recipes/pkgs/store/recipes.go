@@ -2,6 +2,7 @@ package store
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -38,19 +39,41 @@ func GetRecipes(ingredientIds []string) ([]Recipe, error) {
 	}
 
 	var recipeIds []string
+	var ingredientCount []int
 	for rows.Next() {
 		var recipeId string
 		var count int
 		rows.Scan(&recipeId, &count)
 		recipeIds = append(recipeIds, recipeId)
+		ingredientCount = append(ingredientCount, count)
 	}
 
 	fmt.Printf("Found %d recipies in DB:\n%#v\n", len(recipeIds), recipeIds)
 
-	return getRecipesFromDDB(recipeIds)
+	recipeDetails, err := getRecipesFromDDB(recipeIds)
+
+	if err != nil {
+		return recipes, err
+	}
+
+	recipes = make([]Recipe, len(recipeIds))
+	for index, recipeId := range recipeIds {
+		rd := recipeDetails[recipeId]
+		rd.Ingredients.Matching = ingredientCount[index]
+		recipes[index] = rd
+	}
+
+	sort.Slice(recipes, func(i, j int) bool {
+		iMatch := float32(recipes[i].Ingredients.Matching) / float32(recipes[i].Ingredients.Total)
+		jMatch := float32(recipes[j].Ingredients.Matching) / float32(recipes[j].Ingredients.Total)
+
+		return iMatch > jMatch
+	})
+
+	return recipes, nil
 }
 
-func getRecipesFromDDB(recipeIds []string) ([]Recipe, error) {
+func getRecipesFromDDB(recipeIds []string) (map[string]Recipe, error) {
 	svc := dynamodb.New(session.New())
 
 	keys := make([]map[string]*dynamodb.AttributeValue, len(recipeIds))
@@ -75,17 +98,20 @@ func getRecipesFromDDB(recipeIds []string) ([]Recipe, error) {
 	output, err := svc.BatchGetItem(&batchQuery)
 
 	if err != nil {
-		return []Recipe{}, err
+		return map[string]Recipe{}, err
 	}
 
 	recipes := output.Responses["hellofresh-recipes"]
 
-	result := make([]Recipe, len(recipes))
+	result := make(map[string]Recipe)
 
-	for i, recipe := range recipes {
-		result[i] = Recipe{
+	for _, recipe := range recipes {
+		result[*recipe["id"].S] = Recipe{
 			Name: *recipe["name"].S,
 			Url:  *recipe["websiteUrl"].S,
+			Ingredients: IngredientMatch{
+				Total: len(recipe["ingredients"].L),
+			},
 		}
 	}
 

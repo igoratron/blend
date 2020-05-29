@@ -63,6 +63,10 @@ async function checkDBIsUp() {
   return Promise.resolve();
 }
 
+function formatPercentage(value) {
+  return Math.round(value * 10000) / 100;
+}
+
 function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [isDBUp, setDBUp] = useState(false);
@@ -111,6 +115,7 @@ function App() {
                 <a href={recipe.url} target="_blank" rel="noopener noreferrer">
                   {recipe.name}
                 </a>
+              {formatPercentage(recipe.ingredients.matching / recipe.ingredients.total)}% match
               </li>
             ))}
           </ul>
