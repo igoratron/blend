@@ -39,13 +39,20 @@ export default function RecipeResults() {
       dataSource={recipes}
       renderItem={recipe => {
         const ingredientMatch = calculateMatch(recipe.ingredients);
+        const imageUrl =
+          "https://img.hellofresh.com/f_auto,fl_lossy,q_auto,w_610/hellofresh_s3" +
+          recipe.imagePath;
+
         return (
           <List.Item>
             <a href={recipe.url} target="_blank" rel="noopener noreferrer">
-            <Card hoverable={true}>
-              <Card.Meta title={recipe.name} />
-              <Progress percent={ingredientMatch} size="small" />
-            </Card>
+              <Card
+                hoverable={true}
+                cover={<img src={imageUrl} alt="" />}
+              >
+                <Card.Meta title={recipe.name} />
+                <Progress percent={ingredientMatch} size="small" />
+              </Card>
             </a>
           </List.Item>
         );

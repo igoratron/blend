@@ -112,6 +112,7 @@ func getRecipesFromDDB(recipeIds []string) (map[string]Recipe, error) {
 			Ingredients: IngredientMatch{
 				Total: len(recipe["ingredients"].L),
 			},
+      ImagePath: *recipe["imagePath"].S,
 		}
 	}
 

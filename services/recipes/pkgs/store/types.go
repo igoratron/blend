@@ -46,4 +46,5 @@ type Recipe struct {
 	Name        string          `json:"name"`
 	Url         string          `json:"url"`
 	Ingredients IngredientMatch `json:"ingredients"`
+	ImagePath   string          `json:"imagePath"`
 }
