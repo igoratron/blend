@@ -1,59 +1,50 @@
 import React, { useContext, useCallback, useState } from "react";
+import { Select } from 'antd';
 
 import { StateContext } from "./App";
 import * as actions from "./actions";
 
-function searchIngredients(ingredientName) {
+const { Option } = Select;
+
+function searchIngredients(ingredientName, callback) {
   const apiUrl =
     "https://mfuqctb1me.execute-api.eu-west-1.amazonaws.com/dev/ingredients";
-  return fetch(`${apiUrl}?q=${ingredientName}`).then(response =>
-    response.json()
-  );
+  return fetch(`${apiUrl}?q=${ingredientName}`)
+    .then(response => response.json());
 }
 
 export default function IngredientSearch() {
   const [ingredients, setIngredients] = useState([]);
-  const { state, dispatch } = useContext(StateContext);
-  const { pantry } = state;
+  const { dispatch } = useContext(StateContext);
 
-  const onInputChange = useCallback(event => {
-    searchIngredients(event.currentTarget.value)
+  const onSearch = useCallback(ingredientName => {
+    searchIngredients(ingredientName)
       .then(setIngredients)
       .catch(() => setIngredients([]));
   }, []);
 
-  const onListItemClick = useCallback(
-    ingredient => event => {
-      const isChecked = event.target.checked;
-
-      if (isChecked) {
-        dispatch(actions.addIngredient(ingredient));
-      } else {
-        dispatch(actions.removeIngredient(ingredient));
-      }
-      dispatch(actions.suggestRecipes());
+  const onChange = useCallback(
+    (ingredientIds) => {
+      dispatch(actions.suggestRecipes(ingredientIds));
     },
     [dispatch]
   );
 
   return (
     <>
-      <input placeholder="Add ingredient" onChange={onInputChange} />
-      <ul className="list">
-        {ingredients.map(ingredient => (
-          <li key={ingredient.id}>
-            <label className="list_item">
-              <input
-                type="checkbox"
-                value={ingredient.id}
-                onChange={onListItemClick(ingredient)}
-                checked={pantry.some(i => i.id === ingredient.id)}
-              />
-              {ingredient.name}
-            </label>
-          </li>
-        ))}
-      </ul>
+      <Select
+        allowClear={true}
+        mode="multiple"
+        style={{ width: '100%' }}
+        size="large"
+        filterOption={false}
+        placeholder="Search ingredients"
+        onChange={onChange}
+        notFoundContent={'No ingredients found'}
+        onSearch={onSearch}
+      >
+        {ingredients.map(ingredient => <Option key={ingredient.id}>{ingredient.name}</Option>)}
+      </Select>
     </>
   );
 }

@@ -32,6 +32,7 @@
     ]
   },
   "devDependencies": {
+    "antd": "^4.2.5",
     "lottie-react-web": "^2.1.4"
   }
 }
