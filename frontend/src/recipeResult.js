@@ -37,6 +37,7 @@ export default function RecipeResults() {
     <List
       grid={{ gutter: 16, xs: 1, sm: 2, md: 3, column: 4 }}
       dataSource={recipes}
+      locale={({emptyText: "No recipes"})}
       renderItem={recipe => {
         const ingredientMatch = calculateMatch(recipe.ingredients);
         const imageUrl =
