@@ -19,6 +19,16 @@ func toInterfaceArray(array []string) []interface{} {
 	return result
 }
 
+func getIngredientNames(ingredients []*dynamodb.AttributeValue) []string {
+	names := make([]string, len(ingredients))
+
+	for index, ingredient := range ingredients {
+		names[index] = *ingredient.M["name"].S
+	}
+
+	return names
+}
+
 func GetRecipes(ingredientIds []string) ([]Recipe, error) {
 	placeholderString := makePlaceholderString(len(ingredientIds), 1)
 	sqlStatement := fmt.Sprintf(`
@@ -106,13 +116,15 @@ func getRecipesFromDDB(recipeIds []string) (map[string]Recipe, error) {
 	result := make(map[string]Recipe)
 
 	for _, recipe := range recipes {
+		ingredients := recipe["ingredients"].L
 		result[*recipe["id"].S] = Recipe{
 			Name: *recipe["name"].S,
 			Url:  *recipe["websiteUrl"].S,
-			Ingredients: IngredientMatch{
-				Total: len(recipe["ingredients"].L),
+			Ingredients: Ingredients{
+				Total: len(ingredients),
+				List:  getIngredientNames(ingredients),
 			},
-      ImagePath: *recipe["imagePath"].S,
+			ImagePath: *recipe["imagePath"].S,
 		}
 	}
 

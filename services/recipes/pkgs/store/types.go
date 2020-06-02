@@ -37,14 +37,15 @@ type Queryable interface {
 	QueryRow(query string, args ...interface{}) *sql.Row
 }
 
-type IngredientMatch struct {
-	Matching int `json:"matching"`
-	Total    int `json:"total"`
+type Ingredients struct {
+	Matching int      `json:"matching"`
+	Total    int      `json:"total"`
+	List     []string `json:"list"`
 }
 
 type Recipe struct {
-	Name        string          `json:"name"`
-	Url         string          `json:"url"`
-	Ingredients IngredientMatch `json:"ingredients"`
-	ImagePath   string          `json:"imagePath"`
+	Name        string      `json:"name"`
+	Url         string      `json:"url"`
+	Ingredients Ingredients `json:"ingredients"`
+	ImagePath   string      `json:"imagePath"`
 }

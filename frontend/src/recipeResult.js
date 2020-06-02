@@ -53,6 +53,7 @@ export default function RecipeResults() {
               >
                 <Card.Meta title={recipe.name} />
                 <Progress percent={ingredientMatch} size="small" />
+                <div>{recipe.ingredients.list.join(", ")}</div>
               </Card>
             </a>
           </List.Item>
