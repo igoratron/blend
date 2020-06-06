@@ -23,14 +23,10 @@ export default function ShoppingList() {
   const [isShoppingListVisible, setShoppingListVisible] = useState(false);
   const openShoppingList = () => setShoppingListVisible(true);
   const closeShoppingList = () => setShoppingListVisible(false);
+  const recipeIds = state.recipePlan.map(r => r.id).join(',');
 
   const requestShoppingList = () => {
     const apiUrl = "https://mfuqctb1me.execute-api.eu-west-1.amazonaws.com/dev/shopping-list?recipeIds=";
-    const recipeIds = state.recipePlan.map(r => r.id).join(',')
-
-    if(!recipeIds) {
-      return;
-    }
 
     setLoading(true);
     openShoppingList();
@@ -58,7 +54,7 @@ export default function ShoppingList() {
           renderItem={RecipeItem}
         />
 
-        <Button type="text" onClick={requestShoppingList}>Show shopping list</Button>
+        <Button disabled={!recipeIds} type="primary" block onClick={requestShoppingList}>Show shopping list</Button>
 
         <Drawer
           title="Shopping List"
