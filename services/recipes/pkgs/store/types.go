@@ -44,8 +44,19 @@ type Ingredients struct {
 }
 
 type Recipe struct {
+	Id          string      `json:"id"`
 	Name        string      `json:"name"`
 	Url         string      `json:"url"`
 	Ingredients Ingredients `json:"ingredients"`
 	ImagePath   string      `json:"imagePath"`
+}
+
+type ShoppingList struct {
+	Ingredients []ShoppingListItem `json:"ingredients"`
+}
+
+type ShoppingListItem struct {
+	Name   string  `json:"name"`
+	Amount float32 `json:"amount"`
+	Unit   string  `json:"unit"`
 }

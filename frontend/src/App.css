@@ -3,6 +3,9 @@
   box-shadow: 0 2px 8px #f0f1f2;
   z-index: 1;
   padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .header_logo {
@@ -28,4 +31,16 @@
 .loading_text {
   margin-top: 2rem;
   font-size: 2rem;
+}
+
+.cover {
+  height: 190px;
+  object-fit: cover;
+}
+
+.btn-ghost {
+  border: 0;
+  background: none;
+  width: 100%;
+  cursor: pointer;
 }

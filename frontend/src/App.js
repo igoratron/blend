@@ -1,21 +1,23 @@
 import React, { useReducer, useEffect, useState } from "react";
-import { Layout, Row, Col } from 'antd';
+import { Layout, Row, Col } from "antd";
 
-import 'antd/dist/antd.css';
+import "antd/dist/antd.css";
 import "./App.css";
 
-import logoSrc from './assets/logo.png';
+import logoSrc from "./assets/logo.png";
 import * as actions from "./actions";
 import IngredientSearch from "./ingredientSearch";
 import Loading from "./Loading";
-import RecipeResults from './recipeResult';
+import RecipeResults from "./recipeResult";
+import ShoppingList from "./ShoppingList";
 
 const { Header, Content } = Layout;
 
 export const StateContext = React.createContext();
 
 const initialState = {
-  ingredientIdQuery: []
+  ingredientIdQuery: [],
+  recipePlan: []
 };
 
 const reducer = (state, action) => {
@@ -24,6 +26,16 @@ const reducer = (state, action) => {
       return {
         ...state,
         requestedIngredientIds: action.payload
+      };
+    case actions.ADDED_TO_PLAN:
+      return {
+        ...state,
+        recipePlan: state.recipePlan.concat(action.payload)
+      };
+    case actions.REMOVED_FROM_PLAN:
+      return {
+        ...state,
+        recipePlan: state.recipePlan.filter(r => r.id !== action.payload.id)
       };
     default:
       console.log("Unknown action:", action);
@@ -67,6 +79,7 @@ function App() {
       <Layout>
         <Header className="header">
           <img className="header_logo" src={logoSrc} alt="Blend" />
+          <ShoppingList />
         </Header>
         <Content className="u-bg-white u-pt-16">
           <Row justify="center" gutter={[16, 16]}>

@@ -1,7 +1,9 @@
-import React, { useContext, useEffect, useState } from "react";
-import { Card, Progress, List } from "antd";
+import React, { useContext, useEffect, useState, useCallback } from "react";
+import { Card, Progress, List, Tooltip, Typography, message } from "antd";
+import { LinkOutlined, PlusOutlined, MinusOutlined } from "@ant-design/icons";
 
 import { StateContext } from "./App";
+import * as actions from "./actions";
 
 function calculateMatch(ingredients) {
   const value = ingredients.matching / ingredients.total;
@@ -22,6 +24,50 @@ function fetchRecipes(ingredientIds) {
   );
 }
 
+const AddToPlan = addRecipe => (
+  <button className="btn-ghost" onClick={addRecipe}>
+    <PlusOutlined />
+  </button>
+);
+
+const RemoveFromPlan = removeRecipe => (
+  <button className="btn-ghost" onClick={removeRecipe}>
+    <MinusOutlined />
+  </button>
+);
+
+function PlanControls({ recipe }) {
+  const { state, dispatch } = useContext(StateContext);
+
+  const addRecipe = useCallback(() => {
+    dispatch(actions.recipeAddedToPlan(recipe));
+    message.success("Recipe added to the shopping list");
+  }, [dispatch, recipe]);
+
+  const removeRecipe = useCallback(() => {
+    dispatch(actions.recipeRemovedFromPlan(recipe));
+    message.success("Recipe removed from the shopping list");
+  }, [dispatch, recipe]);
+
+  const isRecipeInPlan = state.recipePlan.find(r => r.name === recipe.name);
+
+  return (
+    <Tooltip title="Add to plan">
+      {isRecipeInPlan ? RemoveFromPlan(removeRecipe) : AddToPlan(addRecipe)}
+    </Tooltip>
+  );
+}
+
+function Link({ href }) {
+  return (
+    <Tooltip title="Go to the recipe">
+      <a href={href} target="_blank" rel="noopener noreferrer">
+        <LinkOutlined />
+      </a>
+    </Tooltip>
+  );
+}
+
 export default function RecipeResults() {
   const { state } = useContext(StateContext);
   const [recipes, setRecipes] = useState([]);
@@ -37,7 +83,7 @@ export default function RecipeResults() {
     <List
       grid={{ gutter: 16, xs: 1, sm: 2, md: 3, column: 4 }}
       dataSource={recipes}
-      locale={({emptyText: "No recipes"})}
+      locale={{ emptyText: "No recipes" }}
       renderItem={recipe => {
         const ingredientMatch = calculateMatch(recipe.ingredients);
         const imageUrl =
@@ -46,16 +92,19 @@ export default function RecipeResults() {
 
         return (
           <List.Item>
-            <a href={recipe.url} target="_blank" rel="noopener noreferrer">
-              <Card
-                hoverable={true}
-                cover={<img src={imageUrl} alt="" />}
-              >
-                <Card.Meta title={recipe.name} />
-                <Progress percent={ingredientMatch} size="small" />
-                <div>{recipe.ingredients.list.join(", ")}</div>
-              </Card>
-            </a>
+            <Card
+              actions={[
+                <PlanControls recipe={recipe} />,
+                <Link href={recipe.url} />
+              ]}
+              cover={<img src={imageUrl} className="cover" alt="" />}
+            >
+              <Card.Meta title={recipe.name} />
+              <Progress percent={ingredientMatch} size="small" />
+              <Typography.Paragraph ellipsis={{ rows: 3, expandable: true }}>
+                {recipe.ingredients.list.join(", ")}
+              </Typography.Paragraph>
+            </Card>
           </List.Item>
         );
       }}

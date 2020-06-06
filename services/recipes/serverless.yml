@@ -69,3 +69,10 @@ functions:
           path: recipes
           method: get
           cors: true
+  shopping-list:
+    handler: bin/get-shopping-list
+    events:
+      - http:
+          path: shopping-list
+          method: get
+          cors: true

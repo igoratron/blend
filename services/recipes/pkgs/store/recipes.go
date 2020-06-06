@@ -7,6 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+
+	"github.com/igoratron/blend/pkgs/hellofresh"
 )
 
 func toInterfaceArray(array []string) []interface{} {
@@ -19,11 +22,11 @@ func toInterfaceArray(array []string) []interface{} {
 	return result
 }
 
-func getIngredientNames(ingredients []*dynamodb.AttributeValue) []string {
+func getIngredientNames(ingredients []hellofresh.Ingredient) []string {
 	names := make([]string, len(ingredients))
 
 	for index, ingredient := range ingredients {
-		names[index] = *ingredient.M["name"].S
+		names[index] = ingredient.Name
 	}
 
 	return names
@@ -48,10 +51,10 @@ func GetRecipes(ingredientIds []string) ([]Recipe, error) {
 		return recipes, err
 	}
 
-	var recipeIds []string
+	var recipeIds []hellofresh.Id
 	var ingredientCount []int
 	for rows.Next() {
-		var recipeId string
+		var recipeId hellofresh.Id
 		var count int
 		rows.Scan(&recipeId, &count)
 		recipeIds = append(recipeIds, recipeId)
@@ -68,9 +71,18 @@ func GetRecipes(ingredientIds []string) ([]Recipe, error) {
 
 	recipes = make([]Recipe, len(recipeIds))
 	for index, recipeId := range recipeIds {
-		rd := recipeDetails[recipeId]
-		rd.Ingredients.Matching = ingredientCount[index]
-		recipes[index] = rd
+		hfRecipe := recipeDetails[recipeId]
+		recipes[index] = Recipe{
+			Id:   string(hfRecipe.Id),
+			Name: hfRecipe.Name,
+			Url:  hfRecipe.WebsiteUrl,
+			Ingredients: Ingredients{
+				Matching: ingredientCount[index],
+				Total:    len(hfRecipe.Ingredients),
+				List:     getIngredientNames(hfRecipe.Ingredients),
+			},
+			ImagePath: hfRecipe.ImagePath,
+		}
 	}
 
 	sort.Slice(recipes, func(i, j int) bool {
@@ -83,14 +95,17 @@ func GetRecipes(ingredientIds []string) ([]Recipe, error) {
 	return recipes, nil
 }
 
-func getRecipesFromDDB(recipeIds []string) (map[string]Recipe, error) {
+func getRecipesFromDDB(recipeIds []hellofresh.Id) (map[hellofresh.Id]hellofresh.Recipe, error) {
 	svc := dynamodb.New(session.New())
+	result := make(map[hellofresh.Id]hellofresh.Recipe)
+	var err error
+	fmt.Println("Getting recipes from dynamo")
 
 	keys := make([]map[string]*dynamodb.AttributeValue, len(recipeIds))
 	for i, recipeId := range recipeIds {
 		keys[i] = map[string]*dynamodb.AttributeValue{
 			"id": {
-				S: aws.String(recipeId),
+				S: aws.String(string(recipeId)),
 			},
 		}
 	}
@@ -108,25 +123,51 @@ func getRecipesFromDDB(recipeIds []string) (map[string]Recipe, error) {
 	output, err := svc.BatchGetItem(&batchQuery)
 
 	if err != nil {
-		return map[string]Recipe{}, err
+		return result, err
 	}
 
-	recipes := output.Responses["hellofresh-recipes"]
+	hellofreshRecipes := output.Responses["hellofresh-recipes"]
 
-	result := make(map[string]Recipe)
+	recipes := make([]hellofresh.Recipe, len(hellofreshRecipes))
+	for index, hellofreshRecipe := range hellofreshRecipes {
+		recipes[index] = makeHelloFreshRecipe(hellofreshRecipe)
+	}
 
 	for _, recipe := range recipes {
-		ingredients := recipe["ingredients"].L
-		result[*recipe["id"].S] = Recipe{
-			Name: *recipe["name"].S,
-			Url:  *recipe["websiteUrl"].S,
-			Ingredients: Ingredients{
-				Total: len(ingredients),
-				List:  getIngredientNames(ingredients),
-			},
-			ImagePath: *recipe["imagePath"].S,
-		}
+		result[hellofresh.Id(recipe.Id)] = recipe
 	}
 
 	return result, nil
+}
+
+func makeHelloFreshRecipe(entry map[string]*dynamodb.AttributeValue) hellofresh.Recipe {
+	recipe := hellofresh.Recipe{
+		Id:         *entry["id"].S,
+		Name:       *entry["name"].S,
+		WebsiteUrl: *entry["websiteUrl"].S,
+		ImagePath:  *entry["imagePath"].S,
+	}
+
+	errs := []error{}
+
+	ingredients := []hellofresh.Ingredient{}
+	err := dynamodbattribute.UnmarshalList(entry["ingredients"].L, &ingredients)
+	if err != nil {
+		errs = append(errs, err)
+	}
+
+	yields := []hellofresh.Yield{}
+	err = dynamodbattribute.UnmarshalList(entry["yields"].L, &yields)
+	if err != nil {
+		errs = append(errs, err)
+	}
+
+	if len(errs) > 0 {
+		fmt.Println(errs)
+	} else {
+		recipe.Ingredients = ingredients
+		recipe.Yields = yields
+	}
+
+	return recipe
 }
